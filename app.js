@@ -1,9 +1,26 @@
+require('dotenv').config();
+const path = require('path');
+
 const express = require('express'),
-  bodyParser = require('body-parser');
+  bodyParser = require('body-parser'),
+  multer = require('multer'),
+  mongoose = require('mongoose'),
+  uuidv4 = require('uuid/v4');
 
 const app = express();
 
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'images'),
+  filename: (req, file, cb) => cb(null, uuidv4() + file.originalname)
+}),
+  fileFilter = (req, file, cb) => {
+    if(['image/png', 'image/jpg', 'image/jpeg'].includes(file.mimetype)) cb(null, true);
+    else cb(null, false);
+  };
+
 app.use(bodyParser.json());
+app.use(multer({ storage: fileStorage, fileFilter }).single('image'));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,4 +31,14 @@ app.use((req, res, next) => {
 
 app.use('/feed', require('./routes/feed'));
 
-app.listen(8080);
+app.use((error, req, res, next) => {
+  console.log(err);
+  res.status(error.statusCode || 500).json(error.message);
+});
+
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useFindAndModify: false
+})
+  .then(() => app.listen(8080))
+  .catch(console.log);
