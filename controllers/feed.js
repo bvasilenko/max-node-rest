@@ -3,6 +3,7 @@ const fs = require('fs'),
 
 const { validationResult } = require('express-validator/check');
 
+const io = require('../socket');
 const Post = require('../models/post'),
   User = require('../models/user');
 
@@ -11,7 +12,7 @@ exports.getPosts = async (req, res, next) => {
     const page = req.query.page || 1,
       perPage = 2,
       totalItems = await Post.find().countDocuments(),
-      posts = await Post.find().skip((page - 1) * perPage).limit(perPage);
+      posts = await Post.find().populate('creator').skip((page - 1) * perPage).limit(perPage);
       res.status(200).json({ posts, totalItems });
   } catch(err) {
     next(err);
@@ -19,7 +20,7 @@ exports.getPosts = async (req, res, next) => {
 };
 
 exports.getPost = (req, res, next) => {
-  Post.findById(req.params.postId)
+  Post.findById(req.params.postId).populate('creator')
     .then(post => {
       if(!post) {
         const error = new Error('Post not found');
@@ -55,6 +56,10 @@ exports.createPost = async (req, res, next) => {
     const user = await User.findById(req.userId);
     user.posts.push(post);
     await user.save();
+    io.getIO().emit('posts', { action: 'create', post: {
+      ...post._doc,
+      creator: { _id: req.userId, name: user.name }
+    }});
     res.status(201).json({
       post,
       creator: {

@@ -42,5 +42,11 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useFindAndModify: false
 })
-  .then(() => app.listen(8080))
+  .then(() => {
+    const server = app.listen(8080),
+      io = require('./socket').init(server);
+    io.on('connection', socket => {
+      console.log('Client connected!');
+    });
+  })
   .catch(console.log);
