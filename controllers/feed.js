@@ -12,7 +12,7 @@ exports.getPosts = async (req, res, next) => {
     const page = req.query.page || 1,
       perPage = 2,
       totalItems = await Post.find().countDocuments(),
-      posts = await Post.find().populate('creator').skip((page - 1) * perPage).limit(perPage);
+      posts = await Post.find().populate('creator').sort({ createdAt: -1 }).skip((page - 1) * perPage).limit(perPage);
       res.status(200).json({ posts, totalItems });
   } catch(err) {
     next(err);
@@ -87,13 +87,13 @@ exports.updatePost = async (req, res, next) => {
       throw error;
     }
     const { title, content } = req.body,
-      post = await Post.findById(req.params.postId);
+      post = await Post.findById(req.params.postId).populate('creator');
     if(!post) {
       const error = new Error('Post not found');
       error.statusCode = 404;
       throw error;
     }
-    if(post.creator.toString() !== req.userId.toString()) {
+    if(post.creator._id.toString() !== req.userId.toString()) {
       const error = new Error('Permission denied');
       error.statusCode = 403;
       throw error;
@@ -105,6 +105,7 @@ exports.updatePost = async (req, res, next) => {
     post.content = content;
     post.imageUrl = imageUrl;
     await post.save();
+    io.getIO().emit('posts', { action: 'update', post })
     res.status(200).json({ post });
   } catch(err) {
     next(err);
@@ -128,6 +129,7 @@ exports.deletePost = async (req, res, next) => {
     clearImage(post.imageUrl);
     await Post.findByIdAndRemove(postId);
     await User.findByIdAndUpdate(req.userId, { $pull: { posts: postId } });
+    io.getIO().emit('posts', { action: 'delete', post: postId });
     res.status(200).json({ message: 'Post deleted' })
   } catch(err) {
     next(err);
