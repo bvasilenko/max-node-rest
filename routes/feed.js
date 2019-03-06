@@ -2,21 +2,26 @@ const { Router } = require('express'),
   { body } = require('express-validator/check'),
   router = Router();
 
-const feedController = require('../controllers/feed');
+const feedController = require('../controllers/feed'),
+  { isLoggedIn } = require('../middleware');
 
 const postValidator = [
   body('title').trim().isLength({ min: 5 }),
   body('content').trim().isLength({ min: 5 })
 ];
 
-router.get('/posts', feedController.getPosts);
+router.get('/posts', isLoggedIn, feedController.getPosts);
 
-router.get('/post/:postId', feedController.getPost);
+router.get('/post/:postId', isLoggedIn, feedController.getPost);
 
-router.post('/post', postValidator, feedController.createPost);
+router.post('/post', isLoggedIn, postValidator, feedController.createPost);
 
-router.put('/post/:postId', postValidator, feedController.updatePost);
+router.put('/post/:postId', isLoggedIn, postValidator, feedController.updatePost);
 
-router.delete('/post/:postId', feedController.deletePost);
+router.delete('/post/:postId', isLoggedIn, feedController.deletePost);
+
+router.get('/status', isLoggedIn, feedController.getStatus);
+
+router.put('/status', isLoggedIn, feedController.setStatus);
 
 module.exports = router;

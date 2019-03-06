@@ -29,11 +29,13 @@ app.use((req, res, next) => {
   next();
 })
 
+app.use('/auth', require('./routes/auth'));
 app.use('/feed', require('./routes/feed'));
 
 app.use((error, req, res, next) => {
-  console.log(err);
-  res.status(error.statusCode || 500).json(error.message);
+  console.log(error);
+  const { statusCode, message, data } = error;
+  res.status(statusCode || 500).json({ message, data });
 });
 
 mongoose.connect(process.env.MONGODB_URI, {
