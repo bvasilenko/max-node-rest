@@ -1,5 +1,5 @@
 require('dotenv').config();
-const path = require('path');
+import path = require('path');
 
 const express = require('express'),
   bodyParser = require('body-parser'),
@@ -43,8 +43,9 @@ mongoose.connect(process.env.MONGODB_URI, {
   useFindAndModify: false
 })
   .then(() => {
-    const server = app.listen(8080),
-      io = require('./socket').init(server);
+    const server = app.listen(8080);
+    console.log('Listening!');
+      const io = require('./socket').init(server);
     io.on('connection', socket => {
       console.log('Client connected!');
     });

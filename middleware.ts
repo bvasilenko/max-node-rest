@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-exports.isLoggedIn = (req, res, next) => {
+export const isLoggedIn = (req, res, next) => {
   const authHeader = req.get('Authorization');
   if(!authHeader) {
     const error = new Error('Not authenticated');
-    error.statusCode = 401;
+    error['statusCode'] = 401;
     throw error;
   }
   let token;
@@ -15,7 +15,7 @@ exports.isLoggedIn = (req, res, next) => {
   }
   if(!token) {
     const error = new Error('Not authenticated');
-    error.statusCode = 401;
+    error['statusCode'] = 401;
     throw error;
   }
   req.userId = token.userId;

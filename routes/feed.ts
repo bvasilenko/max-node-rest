@@ -1,6 +1,7 @@
-const { Router } = require('express'),
-  { body } = require('express-validator/check'),
-  router = Router();
+import { Router } from 'express';
+import { body } from 'express-validator/check';
+
+const router = Router();
 
 const feedController = require('../controllers/feed'),
   { isLoggedIn } = require('../middleware');
@@ -24,4 +25,4 @@ router.get('/status', isLoggedIn, feedController.getStatus);
 
 router.put('/status', isLoggedIn, feedController.setStatus);
 
-module.exports = router;
+export = router;

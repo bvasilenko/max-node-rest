@@ -2,15 +2,15 @@ const { validationResult } = require('express-validator/check'),
   bcrypt = require('bcryptjs'),
   jwt = require('jsonwebtoken');
 
-const User = require('../models/user');
+import User = require('../models/user');
 
-exports.signupUser = async (req, res, next) => {
+export const signupUser = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
       const error = new Error('Invalid input');
-      error.statusCode = 422;
-      error.data = errors.array();
+      error['statusCode'] = 422;
+      error['data'] = errors.array();
       throw error;
     }
     const { email, name, password } = req.body,
@@ -26,18 +26,18 @@ exports.signupUser = async (req, res, next) => {
   }
 };
 
-exports.loginUser = async (req, res, next) => {
+export const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body,
       user = await User.findOne({ email });
     if(!user) {
       const error = new Error('User not found');
-      error.statusCode = 401;
+      error['statusCode'] = 401;
       throw error;
     }
     if(!await bcrypt.compare(password, user.password)) {
       const error = new Error('Wrong password');
-      error.statusCode = 401;
+      error['statusCode'] = 401;
       throw error;
     }
     const token = jwt.sign({

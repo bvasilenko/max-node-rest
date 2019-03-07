@@ -3,11 +3,11 @@ const fs = require('fs'),
 
 const { validationResult } = require('express-validator/check');
 
-const io = require('../socket');
-const Post = require('../models/post'),
-  User = require('../models/user');
+import io = require('../socket');
+import Post = require('../models/post');
+import User = require('../models/user');
 
-exports.getPosts = async (req, res, next) => {
+export const getPosts = async (req, res, next) => {
   try {
     const page = req.query.page || 1,
       perPage = 2,
@@ -19,12 +19,12 @@ exports.getPosts = async (req, res, next) => {
   }
 };
 
-exports.getPost = (req, res, next) => {
+export const getPost = (req, res, next) => {
   Post.findById(req.params.postId).populate('creator')
     .then(post => {
       if(!post) {
         const error = new Error('Post not found');
-        error.statusCode = 404;
+        error['statusCode'] = 404;
         throw error;
       }
       res.status(200).json({ post });
@@ -32,17 +32,17 @@ exports.getPost = (req, res, next) => {
     .catch(next);
 };
 
-exports.createPost = async (req, res, next) => {
+export const createPost = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
       const error = new Error('Invalid input');
-      error.statusCode = 422;
+      error['statusCode'] = 422;
       throw error;
     }
     if(!req.file) {
       const error = new Error('No image provided');
-      error.statusCode = 422;
+      error['statusCode'] = 422;
       throw error;
     }
     const { title, content } = req.body,
@@ -72,30 +72,30 @@ exports.createPost = async (req, res, next) => {
   }
 };
 
-exports.updatePost = async (req, res, next) => {
+export const updatePost = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
       const error = new Error('Invalid input');
-      error.statusCode = 422;
+      error['statusCode'] = 422;
       throw error;
     }
     const imageUrl = req.file ? req.file.path.replace("\\","/") : req.body.image;
     if(!imageUrl) {
       const error = new Error('No image provided');
-      error.statusCode = 422;
+      error['statusCode'] = 422;
       throw error;
     }
     const { title, content } = req.body,
       post = await Post.findById(req.params.postId).populate('creator');
     if(!post) {
       const error = new Error('Post not found');
-      error.statusCode = 404;
+      error['statusCode'] = 404;
       throw error;
     }
     if(post.creator._id.toString() !== req.userId.toString()) {
       const error = new Error('Permission denied');
-      error.statusCode = 403;
+      error['statusCode'] = 403;
       throw error;
     }
     if(imageUrl !== post.imageUrl) {
@@ -112,18 +112,18 @@ exports.updatePost = async (req, res, next) => {
   }
 };
 
-exports.deletePost = async (req, res, next) => {
+export const deletePost = async (req, res, next) => {
   try {
     const postId = req.params.postId,
       post = await Post.findById(postId);
     if(!post) {
       const error = new Error('Post not found');
-      error.statusCode = 404;
+      error['statusCode'] = 404;
       throw error;
     }
     if(post.creator.toString() !== req.userId.toString()) {
       const error = new Error('Permission denied');
-      error.statusCode = 403;
+      error['statusCode'] = 403;
       throw error;
     }
     clearImage(post.imageUrl);
@@ -136,12 +136,12 @@ exports.deletePost = async (req, res, next) => {
   }
 };
 
-exports.getStatus = async (req, res, next) => {
+export const getStatus = async (req, res, next) => {
   try{
     const { status } = await User.findById(req.userId);
     if(!status) {
       const error = new Error('User not found');
-      error.statusCode = 404;
+      error['statusCode'] = 404;
       throw error;
     }
     res.status(200).json({ status });
@@ -150,12 +150,12 @@ exports.getStatus = async (req, res, next) => {
   }
 };
 
-exports.setStatus = async (req, res, next) => {
+export const setStatus = async (req, res, next) => {
   try{
     const user = await User.findById(req.userId);
     if(!user) {
       const error = new Error('User not found');
-      error.statusCode = 404;
+      error['statusCode'] = 404;
       throw error;
     }
     user.status = req.body.status;

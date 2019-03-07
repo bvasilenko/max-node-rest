@@ -23,4 +23,4 @@ router.put('/signup', userValidator, authController.signupUser);
 
 router.post('/login', authController.loginUser);
 
-module.exports = router;
+export = router;
